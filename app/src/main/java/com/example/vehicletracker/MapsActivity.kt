@@ -2,24 +2,24 @@ package com.example.vehicletracker
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
+import android.support.v4.content.ContextCompat
+import android.Manifest
+import android.content.pm.PackageManager
+import android.support.v4.app.ActivityCompat
+import android.widget.Toast
 
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
-import kotlinx.android.synthetic.main.activity_maps.*
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     OnMarkerClickListener {
     override fun onMarkerClick(p0: Marker?) = false
 
-    private lateinit var map: GoogleMap
+    private lateinit var mMap: GoogleMap
+    private val LOCATION_REQUEST_CODE = 101
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,13 +41,37 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
      * installed Google Play services and returned to the app.
      */
     override fun onMapReady(googleMap: GoogleMap) {
-        map = googleMap
+        mMap = googleMap
 
-        // Add a marker in Sydney and move the camera
-        val seattle = LatLng(47.6, -122.3)
-        map.addMarker(MarkerOptions().position(seattle).title("Toyota"))
-        map.moveCamera(CameraUpdateFactory.newLatLng(seattle))
-        map.getUiSettings().setZoomControlsEnabled(true)
-        map.setOnMarkerClickListener(this)
+        if (mMap != null) {
+            val permission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+
+            if (permission == PackageManager.PERMISSION_GRANTED) {
+                mMap?.isMyLocationEnabled = true
+            } else {
+                requestPermission(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    LOCATION_REQUEST_CODE
+                )
+            }
+        }
+    }
+
+    private fun requestPermission(permissionType: String, requestCode: Int) {
+        ActivityCompat.requestPermissions(this, arrayOf(permissionType), requestCode)
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        when (requestCode) {
+            LOCATION_REQUEST_CODE -> {
+                if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, "Unable to show location - permission required.",
+                        Toast.LENGTH_LONG).show()
+                } else {
+                    val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+                    mapFragment.getMapAsync(this)
+                }
+            }
+        }
     }
 }
