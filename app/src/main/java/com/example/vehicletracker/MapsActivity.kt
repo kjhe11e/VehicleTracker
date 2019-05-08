@@ -4,9 +4,14 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
 import android.support.v4.app.ActivityCompat
+import android.util.Log
 import android.widget.Toast
+import android.location.LocationListener
 
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener
@@ -14,12 +19,14 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.Marker
 
+
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     OnMarkerClickListener {
     override fun onMarkerClick(p0: Marker?) = false
 
     private lateinit var mMap: GoogleMap
     private val LOCATION_REQUEST_CODE = 101
+    private var locationManager : LocationManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,6 +36,28 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
+        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager?
+
+        try {
+            locationManager?.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, locationListener)
+        } catch (ex: SecurityException) {
+            Log.d("locationException", "Security Exception, unable to obtain location updates")
+        }
+    }
+
+    private val locationListener : LocationListener = object : LocationListener {
+        override fun onLocationChanged(location: Location?) {
+            var currentLat = if (location != null && location.latitude != null) location.latitude else 0
+            var currentLon = if (location != null && location.longitude != null) location.longitude else 0
+            Log.d("locationUpdated", "Lat/lon is $currentLat $currentLon")
+        }
+
+        override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {}
+
+        override fun onProviderEnabled(provider: String) {}
+
+        override fun onProviderDisabled(provider: String) {}
     }
 
     /**
