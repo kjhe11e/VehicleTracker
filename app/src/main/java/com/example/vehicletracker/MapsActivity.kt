@@ -13,11 +13,11 @@ import android.util.Log
 import android.widget.Toast
 import android.location.LocationListener
 
-import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.*
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.MarkerOptions
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
@@ -48,9 +48,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
 
     private val locationListener : LocationListener = object : LocationListener {
         override fun onLocationChanged(location: Location?) {
-            var currentLat = if (location != null && location.latitude != null) location.latitude else 0
-            var currentLon = if (location != null && location.longitude != null) location.longitude else 0
-            Log.d("locationUpdated", "Lat/lon is $currentLat $currentLon")
+            var currentPosition = LatLng(location!!.latitude, location!!.longitude)
+            Log.d("locationUpdated", "Current lat/lon position is $currentPosition")
+            mMap.addMarker(
+                MarkerOptions()
+                    .position(currentPosition)
+                    .title("Current position"))
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPosition, 15.0F))
+
         }
 
         override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {}
