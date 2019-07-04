@@ -56,6 +56,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
                     .title("Current position"))
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPosition, 15.0F))
 
+            // Save location to db.
+            val dbHandler = LocationDbOpenHandler(this@MapsActivity, null)
+            dbHandler.addLocation(location)
+            Log.d("locationUpdated", "Location updated --> $location ")
         }
 
         override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {}
